@@ -1,0 +1,73 @@
+<!-- Include PDF.js and worker script from a CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+<script>
+    // Specify the location of the PDF.js worker script
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js';
+</script>
+
+<!-- HTML container for the PDF text and custom functionality -->
+<div id="pdf-container">
+    <div id="pdf-text"></div>
+    <div>
+        <button onclick="highlightText('example')">Highlight Example</button>
+    </div>
+</div>
+
+<script>
+    // Replace 'your-pdf-file.pdf' with the path to your PDF file
+    const pdfUrl = 'pdf.pdf';
+
+    // Initialize variables
+    let pdfDoc = null;
+    let pageNum = 1;
+
+    // PDF.js code to load PDF document
+    function loadPdf() {
+        pdfjsLib.getDocument(pdfUrl).promise.then((pdf) => {
+            pdfDoc = pdf;
+            renderPage(pageNum);
+        });
+    }
+
+    // PDF.js code to render and extract text from a page
+    function renderPage(num) {
+        pdfDoc.getPage(num).then((page) => {
+            page.getTextContent().then((textContent) => {
+                const pageText = textContent.items.map((text) => text.str).join(' ');
+
+                // Display the text in the container
+                const textContainer = document.getElementById('pdf-text');
+                textContainer.textContent = pageText;
+            });
+        });
+    }
+
+    // Custom functionality: Highlight text
+    function highlightText(searchText) {
+        if (!pdfDoc) {
+            console.error('PDF document not loaded.');
+            return;
+        }
+
+        pdfDoc.getPage(pageNum).then((page) => {
+            page.getTextContent().then((textContent) => {
+                const textContainer = document.getElementById('pdf-text');
+                textContainer.innerHTML = ''; // Clear previous content
+
+                textContent.items.forEach((textItem) => {
+                    const span = document.createElement('span');
+                    span.textContent = textItem.str;
+
+                    if (textItem.str.includes(searchText)) {
+                        span.style.backgroundColor = 'yellow';
+                    }
+
+                    textContainer.appendChild(span);
+                });
+            });
+        });
+    }
+
+    // Call the function to load PDF
+    loadPdf();
+</script>
